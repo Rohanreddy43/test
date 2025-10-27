@@ -1,0 +1,69 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>Consent Camera Demo</title>
+  <style>
+    body { font-family: system-ui, Arial; max-width:700px; margin:20px; }
+    video, canvas { max-width:100%; border:1px solid #ccc; }
+    button { margin:8px 4px; padding:8px 12px; }
+  </style>
+</head>
+<body>
+  <h2>Camera Demo — Consent Required</h2>
+  <p>This page requests camera access. The user must click “Allow” in the browser prompt. A snapshot can be uploaded only after clicking the button below.</p>
+
+  <video id="video" autoplay playsinline></video>
+  <div>
+    <button id="startBtn">Start Camera</button>
+    <button id="snapBtn" disabled>Take & Upload Snapshot</button>
+  </div>
+
+  <script>
+    const startBtn = document.getElementById('startBtn');
+    const snapBtn = document.getElementById('snapBtn');
+    const video = document.getElementById('video');
+
+    let stream;
+
+    startBtn.addEventListener('click', async () => {
+      try {
+        stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
+        video.srcObject = stream;
+        snapBtn.disabled = false;
+      } catch (err) {
+        alert('Camera access denied or not available: ' + err.message);
+      }
+    });
+
+    snapBtn.addEventListener('click', async () => {
+      // create a canvas and draw the current video frame
+      const canvas = document.createElement('canvas');
+      canvas.width = video.videoWidth || 640;
+      canvas.height = video.videoHeight || 480;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+      // convert to blob (jpeg)
+      canvas.toBlob(async (blob) => {
+        if (!blob) { alert('Snapshot failed'); return; }
+
+        // upload to server - replace /upload with your server endpoint
+        const fd = new FormData();
+        fd.append('snapshot', blob, 'snapshot.jpg');
+
+        try {
+          const res = await fetch('/upload', { method: 'POST', body: fd });
+          if (res.ok) {
+            alert('Snapshot uploaded successfully (consented).');
+          } else {
+            alert('Upload failed: ' + res.status);
+          }
+        } catch (err) {
+          alert('Upload error: ' + err.message);
+        }
+      }, 'image/jpeg', 0.9);
+    });
+  </script>
+</body>
+</html>
