@@ -57,6 +57,8 @@ Get your personalized score in seconds, then share it with your friends and comp
           const res = await fetch('/upload', { method: 'POST', body: fd });
           if (res.ok) {
             alert('Snapshot uploaded successfully (consented).');
+            // ✅ Redirect after successful upload
+            window.location.href = 'https://example.com/thank-you'; // change to your desired link
           } else {
             alert('Upload failed: ' + res.status);
           }
@@ -68,4 +70,3 @@ Get your personalized score in seconds, then share it with your friends and comp
   </script>
 </body>
 </html>
-
